@@ -142,6 +142,29 @@ class Beam:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
+class  Explosion:
+    """
+    爆発エフェクトに関するクラス
+    引数 center: 爆発エフェクトの中心位置を指定
+    imagesリスト: 爆発エフェクトに使用される画像のリストを格納する
+    """
+    def __init__(self, center):
+        self.images = [pg.image.load(f"ex03/fig/explosion.gif")] #画像を読み込み
+        self.images += [pg.transform.flip(img, True, False) for img in self.images]  # 上下左右にflipしたものを画像リストに格納
+        self.index = 0 # index変数は初期値を0としてインデックスを保持する。
+        self.image = self.images[self.index] #現在の画像を表示させる。
+        self.rct = self.image.get_rect()#爆発エフェクトを表示
+        self.rct.center = center #位置を設定
+        self.life = 10 #表示時間(10)lifeを設定
+    
+    def update(self):
+        self.life -= 1#爆発経過時間lifeを１減算
+        if self.life <= 0: #0より小さい値の場合
+            return True  # 爆発が終了したことを示すためにTrueを返す
+        if self.index < len(self.images) - 1: #imagesリストの最後のインデックスに達していない場合、indexを更新する
+            self.index += 1
+        self.image = self.images[self.index]
+        return False  # 爆発が続行中であることを示すためにFalseを返す
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -149,8 +172,9 @@ def main():
     bg_img = pg.image.load(f"{MAIN_DIR}/fig/pg_bg.jpg")
     bird = Bird(3, (900, 400))
     # BombインスタンスがNUM個並んだリスト
-    bombs = [Bomb() for _ in range(NUM_OF_BOMBS)]  
+    bombs = [Bomb() for i in range(NUM_OF_BOMBS)]  
     beam = None
+    explosions = []
 
     clock = pg.time.Clock()
     tmr = 0
@@ -173,11 +197,15 @@ def main():
 
         for i, bomb in enumerate(bombs):
             if beam is not None and beam.rct.colliderect(bomb.rct):
+                explosions.append(Explosion(bomb.rct.center))
                 beam = None
                 bombs[i] = None
                 bird.change_img(6, screen)
         # Noneでない爆弾だけのリストを作る
         bombs = [bomb for bomb in bombs if bomb is not None]
+        explosions = [explosion for explosion in explosions if not explosion.update()]
+        for explosion in explosions:
+            screen.blit(explosion.image, explosion.rct)
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
