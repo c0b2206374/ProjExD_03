@@ -2,6 +2,7 @@ import os
 import random
 import sys
 import time
+import math
 
 import pygame as pg
 
@@ -64,6 +65,7 @@ class Bird:
         )
         self.rct = self.img.get_rect()
         self.rct.center = xy
+        self.dire = (+5,0)
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -80,17 +82,19 @@ class Bird:
         引数1 key_lst：押下キーの真理値リスト
         引数2 screen：画面Surface
         """
+       
         sum_mv = [0, 0]
         for k, mv in __class__.delta.items():
             if key_lst[k]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+        if sum_mv != [0, 0]:
+            self.dire = tuple(sum_mv)
         self.rct.move_ip(sum_mv)
         if check_bound(self.rct) != (True, True):
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
-        screen.blit(self.img, self.rct)
-        if not (sum_mv[0] == 0 and sum_mv[1] == 0):  # なにもキーが押されていなくなかったら
-            self.img = self.imgs[tuple(sum_mv)] 
+        if not (sum_mv[0] == 0 and sum_mv[1] == 0):
+            self.img = self.imgs[tuple(sum_mv)]
         screen.blit(self.img, self.rct)
 
 
@@ -127,20 +131,21 @@ class Bomb:
         screen.blit(self.img, self.rct)
 
 class Beam:
-    def __init__(self, bird: Bird):
+    def __init__(self,bird:Bird):
         self.img = pg.image.load(f"{MAIN_DIR}/fig/beam.png")
-        self.rct = self.img.get_rect()
-        self.rct.centery = bird.rct.centery   # こうかとんの中心座標を取得
-        self.rct.centerx = bird.rct.centerx+bird.rct.width/2
-        self.vx, self.vy = +5, 0
+        vx, vy = bird.dire
+        theta = math.atan2(-vy, vx) # 直交座標から極座標の角度を計算
+        angle = math.degrees(theta)
+        self.image2 = pg.transform.rotozoom(self.img, angle, 1)
+        self.rct = self.image2.get_rect()
+        self.rct.centerx = bird.rct.centerx + bird.rct.width * vx / 5
+        self.rct.centery = bird.rct.centery + bird.rct.height * vy / 5
+        self.vx = vx
+        self.vy = vy
 
-    def update(self, screen: pg.Surface):
-        """
-        ビームを速度ベクトルself.vx, self.vyに基づき移動させる
-        引数 screen：画面Surface
-        """
-        self.rct.move_ip(self.vx, self.vy)
-        screen.blit(self.img, self.rct)
+    def update(self,screen:pg.Surface):
+        self.rct.move_ip(self.vx,self.vy)
+        screen.blit(self.image2,self.rct)
 
 class  Explosion:
     """
