@@ -65,7 +65,7 @@ class Bird:
         )
         self.rct = self.img.get_rect()
         self.rct.center = xy
-        self.dire = (+5,0)
+        self.dire = (+5,0) #self.direの定義
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -88,6 +88,7 @@ class Bird:
             if key_lst[k]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+        #updateメソッド：移動量の合計値リストが[0,0]でない時，self.direを合計値リストの値で更新
         if sum_mv != [0, 0]:
             self.dire = tuple(sum_mv)
         self.rct.move_ip(sum_mv)
@@ -133,13 +134,16 @@ class Bomb:
 class Beam:
     def __init__(self,bird:Bird):
         self.img = pg.image.load(f"{MAIN_DIR}/fig/beam.png")
-        vx, vy = bird.dire
+        vx, vy = bird.dire #Birdのdireにアクセスし，こうかとんが向いている方向をvx, vyに代入
         theta = math.atan2(-vy, vx) # 直交座標から極座標の角度を計算
-        angle = math.degrees(theta)
-        self.image2 = pg.transform.rotozoom(self.img, angle, 1)
+        angle = math.degrees(theta) #で弧度法から度数法に変換
+        self.image2 = pg.transform.rotozoom(self.img, angle, 1) 
         self.rct = self.image2.get_rect()
         self.rct.centerx = bird.rct.centerx + bird.rct.width * vx / 5
+        #ビームの中心横座標＝こうかとんの中心横座標＋こうかとんの横幅✖ビームの横速度÷５
         self.rct.centery = bird.rct.centery + bird.rct.height * vy / 5
+        #ビームの中心縦座標＝こうかとんの中心縦座標＋こうかとんの高さ✖ビームの縦速度÷５
+        
         self.vx = vx
         self.vy = vy
 
