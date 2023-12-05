@@ -206,7 +206,7 @@ def main():
 
         for i, bomb in enumerate(bombs):
             if beam is not None and beam.rct.colliderect(bomb.rct):
-                explosions.append(Explosion(bomb.rct.center))
+                explosions.append(Explosion(bomb.rct.center)) #座標をexplosionのリストに入れる
                 beam = None
                 bombs[i] = None
                 bird.change_img(6, screen)
